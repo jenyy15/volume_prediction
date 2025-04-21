@@ -1,4 +1,4 @@
-# Volume Prediction
+# Russell Stock Volume Prediction with Machine Learning
 
 This project uses an LSTM (Long Short-Term Memory) model to predict the daily trading volume of equities.
 
