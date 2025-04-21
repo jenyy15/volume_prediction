@@ -1,0 +1,19 @@
+name: volume_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10.16
+  - pip
+  - cudatoolkit=11.2.2
+  - datetime
+  - pip:
+      - numpy=1.26.0
+      - pandas=2.2.3
+      - tensorflow=2.10.1
+      - pmdarima=2.0.4
+      - tqdm=4.67.1
+      - dataclasses=0.6
+      - pyarrow=10.0.0
+      - plotly=6.0.0
+      - matplotlib=3.10.0
+      
