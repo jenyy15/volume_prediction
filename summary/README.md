@@ -1,13 +1,14 @@
 ## Project Structure:
 This project uses machine learning to predict Russell stock volume, spanning 7 steps from data analysis to model training, outlined in the Jupyter notebook below:
 
-1.	Data Analysis
+1.	Data Analysis & Data Analysis after Mapping (Data Analysis after Mapping is removed because of the proprietary data included)
 2.	Create predictors & Build dataset for models
 3.	Dense model & LSTM model
 4.	Analysis-dense & Analysis-lstm
 5.	Adjust predictors & Build new dataset for models
 6.	Enhancement-predictor & Enhancement-predictor
 7.	Analysis-metrics & Analysis-feature importance
+
 Other notebooks: 5. DQ & 7. Validation of Model Effectiveness
 
 In notebooks 1, I addressed data quality issues such as duplicates and missing values, validated assumptions based on field definitions, and used the intersection of datasets to develop features/predictors. Notebooks 2 involved creating factors like technical signals, market capitalization, style and industry factors, and calendar/earnings release schedules.
