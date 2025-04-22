@@ -1,3 +1,10 @@
+"""
+This file contians tools for model results analysis:
+1. To generate plots of r2 and loss during trainng and validation
+2. To build summary table for metrics of training and testing
+3. To load model and generate feature importance analysis
+"""
+
 from typing import Callable, Dict, List, Tuple, Optional
 
 import pandas as pd
@@ -6,6 +13,7 @@ import tensorflow as tf
 
 from .model_training_utils import load_metrics
 from train_models import r2
+
 
 # Analysis
 def make_plot(train_metrics_dict: Dict):
@@ -40,12 +48,15 @@ def make_plot(train_metrics_dict: Dict):
     plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
     plt.grid(True)
     plt.show()
-    
-def summarize_metrics(filename_roots: Tuple, factors_columns: List, num_list: Optional[List]=None):
+
+
+def summarize_metrics(
+    filename_roots: Tuple, factors_columns: List, num_list: Optional[List] = None
+):
     """Build summary table for metrics of training and testing"""
     metrics_summary = pd.DataFrame()
     if num_list is None:
-        num_list= list(range(1, 6))
+        num_list = list(range(1, 6))
     for num in num_list:
         train_metrics_path = f"./metrics/{filename_roots[0]}{num}.pkl"
         if num == 1 and "single_cate" in train_metrics_path:
@@ -99,7 +110,7 @@ def load_model(
 
 
 # DISPLAY FEATURE IMPORTANCE
-def plot_importance(metrics_path: str, factor: str, num: int|str):
+def plot_importance(metrics_path: str, factor: str, num: int | str):
     """Display feature importance"""
     metrics = load_metrics(metrics_path)
     df = pd.DataFrame(metrics, index=["MSE", "R2"])

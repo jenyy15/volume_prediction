@@ -1,5 +1,12 @@
+"""
+This file contains functions for model training:
+1. GPU setup
+2. Model training and validating with cross validation (fit_models_with_cross_validation)
+3. Enhanced model training and validating with cross validation (fit_models_with_cross_validation_v2)
+"""
+
 import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -66,7 +73,7 @@ def train_NN(
     verbose: int,
     model_config: ModelConfig,
     model_type: Optional[str] = None,
-):
+) -> Tuple[tf.keras.Model, Dict]:
     """train RNN on predictors and make prediction for volume"""
     # Prepare datasets for training and validation
     train_ds = data_feeder.gen_tf_dataset(train_filter)
@@ -76,7 +83,9 @@ def train_NN(
     if model_type == "transfer":
         # Transfer learning:
         # Train the rest part of model with pretrained encoder
-        other_input_size = data_feeder.predictors_size-model_config.encoder.input_shape[-1]
+        other_input_size = (
+            data_feeder.predictors_size - model_config.encoder.input_shape[-1]
+        )
         model = model_config.model_structure(
             model_config.encoder, data_feeder.window_size, other_input_size
         )
@@ -119,7 +128,7 @@ def fit_models_with_cross_validation(
     test_filter: np.ndarray,
     model_config: ModelConfig,
     model_name: str,
-):
+) -> Tuple[Dict, Dict]:
     """Fit models with cross-validation"""
     train_metrics_dict = {}
     test_metrics = {}
@@ -158,6 +167,7 @@ def fit_models_with_cross_validation(
             pickle.dump(test_metrics, pickle_file)
     return train_metrics_dict, test_metrics
 
+
 ### pretrain with autoencoder
 def train_AE(
     data_feeder: DataFeeder,
@@ -165,7 +175,7 @@ def train_AE(
     val_filter: pd.Series,
     verbose: int,
     model_config: ModelConfig,
-):
+) -> Tuple[tf.keras.Model, Dict]:
     """Train autoencoder"""
     ae_model, train_metrics = train_NN(
         data_feeder=data_feeder,
@@ -184,8 +194,12 @@ def train_AE(
 
 
 def update_pretrain_data_feeder(
-    ae_data_feeder, data_feeder, first_train_dates, horizon
-):
+    ae_data_feeder: DataFeeder,
+    data_feeder: DataFeeder,
+    first_train_dates: np.ndarray,
+    horizon: int,
+) -> DataFeeder:
+    """Update pretrain data feeder"""
     data_df = data_feeder.data_df.loc[
         (data_feeder.predictors_dates < first_train_dates[1])
         & (data_feeder.predictors_dates >= first_train_dates[0]),
@@ -204,7 +218,9 @@ def update_pretrain_data_feeder(
     return ae_data_feeder
 
 
-def update_pretrain_filter(ae_data_feeder):
+def update_pretrain_filter(
+    ae_data_feeder: RnnAEDataFeeder,
+) -> Tuple[np.ndarray, np.ndarray]:
     """Update pretrain dataset filter"""
     pretrain_filter = (
         ae_data_feeder.predictors_dates >= ae_data_feeder.train_dates[0]
@@ -219,11 +235,11 @@ def update_pretrain_filter(ae_data_feeder):
     return pretrain_filter, preval_filter
 
 
-def validate_columns_idx(ae_data_feeder_cols, data_feeder_cols):
+def validate_columns_idx(ae_data_feeder_cols: List[str], data_feeder_cols: List[str]):
     """Ensure the column positions of encoder are corret"""
     # Skip isin, the 1 st column
     autoencoder_cols_len = len(ae_data_feeder_cols[1:])
-    last_columns = data_feeder_cols[-(autoencoder_cols_len+1):-1]
+    last_columns = data_feeder_cols[-(autoencoder_cols_len + 1) : -1]
     assert ae_data_feeder_cols[1:] == last_columns, (
         f"Failed: autoencoder data_feeder's column names don't match the last {autoencoder_cols_len} "
         f"columns in data feeder. Expected: {ae_data_feeder_cols[1:]}, but got: {last_columns}"
@@ -232,15 +248,15 @@ def validate_columns_idx(ae_data_feeder_cols, data_feeder_cols):
 
 def fit_models_with_cross_validation_v2(
     data_feeder: DataFeeder,
-    ae_data_feeder: DataFeeder,
+    ae_data_feeder: RnnAEDataFeeder,
     cv_spliter: RollingForecastCV | SlidingWindowForecastCV,
     train_dates: List,
     test_filter: np.ndarray,
     model_config: ModelConfig,
     ae_model_config: ModelConfig,
     model_name: str,
-    skip_cv_list: Optional[List]=None,
-):
+    skip_cv_list: Optional[List] = None,
+) -> Tuple[Dict, Dict, Dict]:
     """Fit version 2 models with cross-validation
     version 2 model contains pretrain process: use history data to train encoder part
     """
@@ -249,8 +265,10 @@ def fit_models_with_cross_validation_v2(
     test_metrics = {}
     ae_metrics_dict = {}
     cv_fold_count = 1
-    # [last first_train_date, current first_train_date]
-    first_train_dates = [None, None]
+    first_train_dates = [
+        None,
+        None,
+    ]  # [last first_train_date, current first_train_date]
     # Pretrain dataset
     # the 1st dataset is the pre_train_dataset
     # then the pretrain dataset moves to the later dates like a sliding window
@@ -262,7 +280,11 @@ def fit_models_with_cross_validation_v2(
             ae_data_feeder = update_pretrain_data_feeder(
                 ae_data_feeder, data_feeder, first_train_dates, cv_spliter.horizon
             )
-        print(ae_data_feeder.train_dates[0], ae_data_feeder.train_dates[-1], f"len={len(ae_data_feeder.train_dates)}")
+        print(
+            ae_data_feeder.train_dates[0],
+            ae_data_feeder.train_dates[-1],
+            f"len={len(ae_data_feeder.train_dates)}",
+        )
         # Generate pretrain dataset filter
         pretrain_filter, preval_filter = update_pretrain_filter(ae_data_feeder)
         if (skip_cv_list is None) or (cv_fold_count not in skip_cv_list):
@@ -274,7 +296,9 @@ def fit_models_with_cross_validation_v2(
                 verbose=ae_model_config.verbose,
                 model_config=ae_model_config,
             )
-            model_config.encoder.save_weights(f"./checkpoints/{ae_model_config.model_name}_CV{cv_fold_count}")
+            model_config.encoder.save_weights(
+                f"./checkpoints/{ae_model_config.model_name}_CV{cv_fold_count}"
+            )
             # Generate train and validation dataset filter
             train_filter = (data_feeder.predictors_dates >= first_train_dates[1]) & (
                 data_feeder.predictors_dates <= train_dates[train_idx[-1]]
@@ -282,7 +306,7 @@ def fit_models_with_cross_validation_v2(
             val_filter = (data_feeder.predictors_dates >= train_dates[test_idx[0]]) & (
                 data_feeder.predictors_dates <= train_dates[test_idx[-1]]
             )
-    
+
             model, train_metrics_dict[cv_fold_count] = train_NN(
                 data_feeder=data_feeder,
                 train_filter=train_filter,
@@ -292,7 +316,9 @@ def fit_models_with_cross_validation_v2(
                 model_type="transfer",  # transfer learning: model_config.encoder != None
             )
             # https://www.tensorflow.org/tutorials/keras/save_and_load
-            model.save_weights(f"./checkpoints/{model_config.model_name}_CV{cv_fold_count}")
+            model.save_weights(
+                f"./checkpoints/{model_config.model_name}_CV{cv_fold_count}"
+            )
             # Test dataset evaluation
             test_ds = data_feeder.gen_tf_dataset(test_filter)
             test_metrics[cv_fold_count] = model.evaluate(test_ds, verbose=1)
@@ -304,7 +330,7 @@ def fit_models_with_cross_validation_v2(
                 pickle.dump(train_metrics_dict, pickle_file)
             with open(f"./metrics/test_metrics_{model_name}.pkl", "wb") as pickle_file:
                 pickle.dump(test_metrics, pickle_file)
-    
+
             del model, train_filter, val_filter, test_ds
 
         cv_fold_count += 1

@@ -1,3 +1,10 @@
+"""
+This file contains helper functions for model training:
+1. Functions to load data, feature configurations, and evaluation metrics
+2. Configuration settings for model training and validation
+3. Data feeder for model training, validation and prediction
+"""
+
 import json
 import os
 import pickle
@@ -10,7 +17,8 @@ import pandas as pd
 import pyarrow.parquet as pq
 import tensorflow as tf
 
-# load data
+
+### Functions to load data, feature configurations, and evaluation metrics
 def read_data(filename, filters=None, columns=None, folder_path="F:/predictors"):
     """read data from parquet file
     columns and filters are useful to save memory
@@ -29,10 +37,12 @@ def load_data_columns_config(version=1) -> Dict:
     """load data columns' config"""
     script_dir = os.path.dirname(os.path.realpath(__file__))
     if version == 1:
+        # the inital features configuration
         config_path = os.path.join(
             script_dir, "config", "final_dataset_column_names.json"
         )
     else:
+        # the enhanced version of features configuration
         config_path = os.path.join(
             script_dir, "config", "final_dataset_column_namesv2.json"
         )
@@ -59,6 +69,7 @@ def load_metrics(file_path) -> Dict:
     return loaded_dict
 
 
+### Configuration settings for model training and validation
 @dataclass
 class ModelConfig:
     """model configuration"""
@@ -71,6 +82,7 @@ class ModelConfig:
     encoder_trainable: Optional[bool] = None
 
 
+### Data feeder for model training, validation and prediction
 class DataFeeder(ABC):
     def __init__(
         self,
