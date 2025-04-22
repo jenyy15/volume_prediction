@@ -12,7 +12,7 @@ import plotly.express as px
 import tensorflow as tf
 
 from .model_training_utils import load_metrics
-from train_models import r2
+from .train_models import r2
 
 
 # Analysis

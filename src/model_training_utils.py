@@ -39,12 +39,12 @@ def load_data_columns_config(version=1) -> Dict:
     if version == 1:
         # the inital features configuration
         config_path = os.path.join(
-            script_dir, "config", "final_dataset_column_names.json"
+            script_dir, "..", "config", "final_dataset_column_names.json"
         )
     else:
         # the enhanced version of features configuration
         config_path = os.path.join(
-            script_dir, "config", "final_dataset_column_namesv2.json"
+            script_dir, "..", "config", "final_dataset_column_namesv2.json"
         )
 
     with open(config_path, "r") as file:
