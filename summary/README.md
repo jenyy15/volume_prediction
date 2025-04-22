@@ -22,7 +22,7 @@ In 7. Validation of Model Effectiveness, I computed the MSE and R^2 using moving
 
 ## Other files:
 
-**1. writeup.pdf:** the writeup of the project in `summary/writeup.pdf`.
+**1. writeup.pdf:** the writeup of the project in [`summary/writeup.pdf`](https://github.com/jenyy15/volume_prediction/blob/main/summary/writeup.pdf).
 
 **2. html plots:**
 The feature importance plots in `summary/analysis_results/`:
