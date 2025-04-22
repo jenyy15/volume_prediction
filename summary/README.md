@@ -33,20 +33,20 @@ The feature importance plots:
 **3. python scripts:**
 These scripts are used in the Jupyter notebooks for model training and results analysis.
 
-- model_training_utils.py: the helper functions for model training
-- train_models.py: the functions to train models
-- model_analysis.py: the functions to analyze model results
+- `model_training_utils.py`: the helper functions for model training
+- `train_models.py`: the functions to train models
+- `model_analysis.py`: the functions to analyze model results
 
 **4. environment files:**
-- requirements.yaml: major packages
-- environments.yaml: conda environment 
+- `requirements.yaml`: major packages
+- `environments.yaml`: conda environment 
 
 **5. config files:**
-- config/final_dataset_column_names.json: the final dataset config
-- config/final_dataset_column_namesv2.json: version 2 of the final dataset config
+- `config/final_dataset_column_names.json`: the final dataset config
+- `config/final_dataset_column_namesv2.json`: version 2 of the final dataset config
 
 **6. csv file:**
-factor_types.csv: the factor types in barra dataset
+`factor_types.csv`: the factor types in barra dataset
 
 -----------------------------
 
